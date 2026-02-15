@@ -1,16 +1,82 @@
-# React + Vite
+# Eventix - React + Supabase Course Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Eventix is a work-in-progress course project used to teach React and Supabase.
+Students build a modern event discovery and booking experience while learning routing,
+UI composition, data flows, and backend integration.
 
-Currently, two official plugins are available:
+This repo is intentionally not complete yet. Each lesson adds features and refactors
+the codebase as we move from a static UI to a fully connected app.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech Stack
 
-## React Compiler
+- React 19 + Vite
+- React Router
+- Tailwind CSS
+- Supabase (Auth + database)
+- Framer Motion
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## App Overview
 
-## Expanding the ESLint configuration
+Planned and in-progress screens:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Marketing homepage with event cards and animations
+- Auth flow (login, signup)
+- Event details and booking
+- User bookings
+- Dashboard for hosts (create and edit events)
+
+Routes are defined in `src/App.jsx` and include:
+
+- `/` home
+- `/login`, `/signup`
+- `/my-bookings`
+- `/event/:id`
+- `/dashboard`, `/dashboard/create`, `/dashboard/edit/:id`
+
+## Getting Started
+
+### 1) Install dependencies
+
+```bash
+npm install
+```
+
+### 2) Configure environment variables
+
+Create a `.env` file in the project root with your Supabase project values:
+
+```bash
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your_anon_key
+```
+
+These are used in `utils/supabase.js` to create the Supabase client.
+
+### 3) Run the dev server
+
+```bash
+npm run dev
+```
+
+## Scripts
+
+- `npm run dev` Start the Vite dev server
+- `npm run build` Build for production
+- `npm run preview` Preview the production build locally
+- `npm run lint` Run ESLint
+
+## Project Structure (Highlights)
+
+- `src/pages` Route-level screens
+- `src/components` UI components
+- `src/layouts` Shared layouts
+- `src/data` Placeholder data used before Supabase wiring
+- `utils/supabase.js` Supabase client
+
+## Course Notes
+
+This project evolves across lessons. You may see placeholder data and incomplete
+features. That is expected, and it is part of the learning process.
+
+If you are a student, follow the lesson order before attempting to fill in missing
+pieces on your own.
