@@ -1,17 +1,20 @@
 // ==========================================
 // Signup.jsx — User Registration Page
 // ==========================================
-// This page allows new users to create an account.
-// They can choose to be an "attendee" (someone who
-// attends events) or an "organizer" (someone who
-// creates and manages events).
+// Yeh page kya karta hai (What this page does):
+// 1. User form bharta hai (name, email, password)
+// 2. Role choose karta hai: "Attendee" ya "Organizer"
+// 3. Submit pe signUp() call hota hai AuthContext se
+// 4. Supabase account banata hai + confirmation email bhejta hai
+// 5. ✅ NEW: "Check your email" screen dikhao (verification ke liye)
 //
-// How it works:
-// 1. User fills in the form (name, email, password)
-// 2. User picks their role (attend or organize)
-// 3. On submit, we call signUp() from our AuthContext
-// 4. Supabase creates the account + sends confirmation email
-// 5. User is redirected to the login page
+// ── Email Verification Flow (Students ke liye) ──
+// Jab Supabase Dashboard mein "Confirm email" ON hota hai:
+//   a. User signup karta hai
+//   b. Supabase ek verification email bhejta hai (magic link)
+//   c. User email mein link click karta hai
+//   d. Tab hi login kar sakta hai
+// Isliye hum navigate("/login") ki jagah ek success screen dikhate hain
 // ==========================================
 
 // --- Imports ---
@@ -22,7 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 // Icons from lucide-react: Calendar icon, Arrow, Users, CalendarDays
-import { Calendar, ArrowRight, Users, CalendarDays } from "lucide-react";
+// MailCheck = email verification screen pe dikhne wala icon
+import { Calendar, ArrowRight, Users, CalendarDays, MailCheck } from "lucide-react";
 // motion: adds smooth animations to our components
 import { motion } from "framer-motion";
 // useState: React hook to store and update data within this component
@@ -59,6 +63,17 @@ const Signup = () => {
   // "loading" is true while the signup request is being processed
   // We use it to disable the button and show "Creating Account..."
   const [loading, setLoading] = useState(false);
+
+  // ==========================================
+  // ✅ NEW: Email Verification State
+  // ==========================================
+  // "emailSent" = true jab signup successful ho jata hai
+  // Tab hum form ki jagah ek "Check your email" screen dikhate hain
+  // Yeh state isiliye hai kyunki Supabase email verification flow mein
+  // user ko pehle email confirm karna hota hai, tab hi login hota hai
+  const [emailSent, setEmailSent] = useState(false);
+  // "submittedEmail" = user ka entered email — success screen pe dikhane ke liye
+  const [submittedEmail, setSubmittedEmail] = useState("");
 
   // Get the signUp function from our AuthContext
   const { signUp } = useAuth();
@@ -100,14 +115,20 @@ const Signup = () => {
       );
 
       if (signUpError) {
-        // Signup failed — show the error message from Supabase
+        // Signup fail hua — Supabase ka error message dikhao
         setFormError(signUpError.message);
       } else {
-        // Signup succeeded! Redirect user to the login page
-        // We pass a success message via React Router's "state" feature
-        navigate('/login', {
-          state: { message: 'Account created! Please check your email to confirm, then sign in.' }
-        });
+        // ==========================================
+        // ✅ NEW: Navigate ki jagah → emailSent screen dikhao
+        // ==========================================
+        // Pehle hum navigate("/login") karte the
+        // Ab hum emailSent = true karte hain → form hide, success screen show
+        // Kyunki:
+        // → Supabase ne verification email bhej diya hai
+        // → Jab tak user email confirm nahi karta, login nahi hoga
+        // → Isliye directly login pe bhejne se confusion hoga
+        setSubmittedEmail(formData.email); // email save karo — screen pe dikhane ke liye
+        setEmailSent(true);               // success screen trigger karo
       }
     } catch (err) {
       // Catch any unexpected errors
@@ -124,13 +145,94 @@ const Signup = () => {
   // --- Render the Component ---
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12">
-      {/* Animated wrapper — fades in and slides up when page loads */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
+
+      {/* ==========================================
+          ✅ NEW: Email Verification Success Screen
+          ==========================================
+          emailSent = true jab → yeh screen dikhao, form mat dikhao
+          AnimatePresence nahi chahiye kyunki yeh replace karta hai form ko
+      ========================================== */}
+      {emailSent && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
+          className="w-full max-w-md text-center"
+        >
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl shadow-primary/5 p-10">
+            {/* Animated email icon — spring animation (bouncy) */}
+            <motion.div
+              initial={{ scale: 0, rotate: -15 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 12 }}
+              className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10"
+            >
+              <MailCheck className="h-10 w-10 text-primary" />
+            </motion.div>
+
+            {/* Heading */}
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-2xl font-bold text-foreground"
+            >
+              Check your email! 📬
+            </motion.h1>
+
+            {/* Description — email address bhi dikhao */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-3 text-sm leading-relaxed text-muted-foreground"
+            >
+              We sent a confirmation link to{" "}
+              {/* Email bold/coloured dikhao taaki user notice kare */}
+              <span className="font-semibold text-foreground">{submittedEmail}</span>.
+              <br />
+              Click the link in that email to activate your account.
+            </motion.p>
+
+            {/* Helpful tips box */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mt-6 rounded-xl bg-muted/60 px-5 py-4 text-left text-xs text-muted-foreground space-y-1.5"
+            >
+              <p className="font-semibold text-foreground text-sm mb-2">💡 Didn't get the email?</p>
+              <p>• Spam/Junk folder check karo</p>
+              <p>• Email sahi likhi hai? Warna naya account try karo</p>
+              <p>• Kuch minutes wait karo — kabhi kabhi delay hota hai</p>
+            </motion.div>
+
+            {/* Back to login link */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-6"
+            >
+              {/* navigate ki jagah Link use karo — better UX */}
+              <Link to="/login">
+                <Button className="w-full gap-2 rounded-xl">
+                  Go to Login <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── Original Signup Form — sirf tab dikhao jab email nahi bheja ── */}
+      {!emailSent && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
         {/* Card container with rounded corners, border, and shadow */}
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl shadow-primary/5">
 
@@ -388,6 +490,7 @@ const Signup = () => {
           </div>
         </div>
       </motion.div>
+      )} {/* End of !emailSent condition */}
     </div>
   );
 };

@@ -4,7 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>eventix</title>
+    <meta name="description" content="Eventix — Discover, book and host extraordinary events near you." />
+    <title>Eventix — Where Moments Become Memories</title>
+
+    <!--
+      ============================================
+      💳 Razorpay Checkout Script
+      ============================================
+      Yeh Razorpay ka official JavaScript library hai.
+      Isko <head> mein load karna zaroori hai kyunki:
+      - window.Razorpay = globally available ho jaata hai
+      - EventDetails.jsx mein "new window.Razorpay(options)" call hoga
+
+      NOTE: Yeh CDN script hai — internet hona chahiye load hone ke liye.
+      Agar script load nahi hua → EventDetails mein "window.Razorpay" undefined hoga
+      → Hum wahan check karte hain aur user ko inform karte hain
+    ============================================
+    -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   </head>
   <body>
     <div id="root"></div>
