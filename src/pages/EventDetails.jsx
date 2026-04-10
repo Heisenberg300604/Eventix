@@ -251,6 +251,30 @@ const EventDetails = () => {
     try {
       // Safety clamp: qty should never exceed current seats_left
       const safeQty = Math.min(qty, event.seats_left);
+      const amountInPaise = ((event.price ?? 99) * safeQty * 100);
+
+      // ── 1. Create Razorpay Order ─────────────────────────
+      // NOTE: In production, order creation MUST happen on the backend!
+      // Here we create it in frontend using Basic Auth for tutorial/test mode.
+      // We use a proxy (/api/razorpay -> api.razorpay.com) to bypass CORS blocks.
+      const orderResponse = await fetch("/api/razorpay/v1/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic " + btoa(`${import.meta.env.VITE_RAZORPAY_KEY_ID}:${import.meta.env.VITE_RAZORPAY_SECRET_KEY}`)
+        },
+        body: JSON.stringify({
+          amount: amountInPaise,
+          currency: "INR",
+          receipt: `receipt_${event.id}_${user.id}`.substring(0, 40), // receipt max 40 chars
+        })
+      });
+
+      if (!orderResponse.ok) {
+        throw new Error("Failed to create order. Please check your keys or network.");
+      }
+      
+      const orderData = await orderResponse.json();
 
       // ── Razorpay Checkout Options ──────────────────────────
       // Razorpay ka "options" object — yeh sab fields required/optional hain
@@ -263,9 +287,12 @@ const EventDetails = () => {
         // Amount PAISE mein hona chahiye (Indian currency ka smallest unit)
         // 1 rupee = 100 paise, isliye * 100
         // Agar event.price nahi hai DB mein → default ₹99 per ticket
-        amount: ((event.price ?? 99) * safeQty * 100),
+        amount: orderData.amount,
 
-        currency: "INR",
+        currency: orderData.currency,
+        
+        // Latest Razorpay docs require order_id for standard checkout
+        order_id: orderData.id,
 
         // Checkout window mein dikhne wala naam
         name: "Eventix",
